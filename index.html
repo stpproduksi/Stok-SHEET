@@ -3,119 +3,90 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Stok Akhir Sheet</title>
+<title>Rekap EXT</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1D4E89">
 <link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#F3F4F6;--card:#FFF;--ink:#14181F;--mute:#5B6472;--line:#E3E6EA;--accent:#1D4E89;--good:#157F3C;--bad:#B91C1C;}
+  :root{--bg:#F3F4F6;--card:#FFF;--ink:#14181F;--mute:#5B6472;--line:#E3E6EA;--accent:#1D4E89;--bad:#B91C1C;}
   *{box-sizing:border-box;}
-  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:0 0 24px;}
-  header{background:var(--accent);color:#fff;padding:16px 16px 12px;position:sticky;top:0;z-index:5;}
-  header h1{font-size:16px;font-weight:800;margin:0;}
-  header .sub{font-size:11px;opacity:.85;margin-top:2px;}
-  .bar{display:flex;gap:8px;padding:12px 16px;background:var(--bg);position:sticky;top:72px;z-index:4;}
-  .bar input{flex:1;padding:11px 12px;font-size:15px;border:1px solid var(--line);border-radius:8px;background:#fff;}
-  .bar input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,78,137,.15);}
-  .bar button{padding:11px 14px;font-size:13px;font-weight:700;border:none;border-radius:8px;background:#111827;color:#fff;cursor:pointer;}
-  .bar button:disabled{opacity:.5;}
-  .info{font-size:12px;color:var(--mute);padding:0 16px 8px;}
-  .list{padding:0 16px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
-  .card .title{font-size:15px;font-weight:800;margin-bottom:6px;word-break:break-word;}
-  .kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:3px 0;border-top:1px dashed var(--line);}
-  .kv:first-of-type{border-top:none;}
-  .kv .k{color:var(--mute);}
-  .kv .v{font-weight:700;font-family:'Roboto Mono',monospace;text-align:right;word-break:break-word;}
-  .msg{padding:16px;font-size:13px;color:var(--mute);text-align:center;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:16px;}
+  h1{font-size:16px;font-weight:800;margin:0 0 10px;}
+  .tgl-bar{display:flex;gap:8px;margin-bottom:12px;}
+  .tgl-bar input{flex:1;padding:10px 12px;font-size:15px;border:1px solid var(--line);border-radius:8px;background:#fff;}
+  .tgl-bar button{padding:10px 14px;font-size:13px;font-weight:700;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;}
+  .judul-tgl{font-size:15px;font-weight:800;margin:6px 0 10px;}
+  .wrap{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);}
+  thead th{background:#EEF2F7;text-align:left;font-size:12px;text-transform:uppercase;color:var(--mute);}
+  th.num,td.num{text-align:right;font-family:'Roboto Mono',monospace;}
+  td.ext{font-weight:800;vertical-align:top;border-right:1px solid var(--line);background:#FAFBFC;}
+  tr.sub td{background:#EFF6FF;font-weight:800;}
+  tr.grand td{background:var(--accent);color:#fff;font-weight:800;}
+  .msg{padding:16px;color:var(--mute);text-align:center;font-size:13px;}
   .msg.bad{color:var(--bad);font-weight:700;}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Stok Akhir Sheet</h1>
-  <div class="sub" id="updated">Memuat data...</div>
-</header>
+<h1>Rekap EXT</h1>
 
-<div class="bar">
-  <input type="text" id="cari" placeholder="Cari carsheet, produk, TF..." autocapitalize="characters" autocomplete="off" oninput="render()">
-  <button id="btnRefresh" onclick="muat()">Muat Ulang</button>
+<div class="tgl-bar">
+  <input type="date" id="fTgl">
+  <button onclick="muat()">Tampilkan</button>
 </div>
 
-<div class="info" id="info"></div>
-<div class="list" id="list"></div>
+<div class="judul-tgl" id="judulTgl">-</div>
+
+<div class="wrap">
+  <table>
+    <thead>
+      <tr><th>EXT</th><th>Ukuran</th><th class="num">Berat</th></tr>
+    </thead>
+    <tbody id="tbody"><tr><td colspan="3" class="msg">Pilih tanggal lalu tekan Tampilkan.</td></tr></tbody>
+  </table>
+</div>
 
 <script>
 var WEBAPP_URL='https://script.google.com/macros/s/AKfycbxp5L0rGdC0ki2M18YjNnylr0aAOXDLCzW5k84fJhT7aCkdlFrPeOY2tH0b75MMjDJh/exec';
-var data={headers:[], rows:[]};
 
 function esc(s){ return String(s===null||s===undefined?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
-
-function fmtVal(v){
-  if(typeof v==='number') return v.toLocaleString('id-ID',{maximumFractionDigits:2});
-  return v===''?'-':String(v);
-}
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{maximumFractionDigits:2}); }
+function tglHariIni(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function tglTampil(iso){ var p=String(iso).split('-'); return p.length===3 ? p[2]+'-'+p[1]+'-'+p[0] : iso; }
 
 function muat(){
-  var btn=document.getElementById('btnRefresh');
-  btn.disabled=true;
-  document.getElementById('list').innerHTML='<div class="msg">Memuat data...</div>';
-  fetch(WEBAPP_URL+'?action=stokakhir')
+  var tgl=document.getElementById('fTgl').value;
+  var tbody=document.getElementById('tbody');
+  if(!tgl){ tbody.innerHTML='<tr><td colspan="3" class="msg bad">Pilih tanggal dulu.</td></tr>'; return; }
+  document.getElementById('judulTgl').textContent='Tanggal: '+tglTampil(tgl);
+  tbody.innerHTML='<tr><td colspan="3" class="msg">Memuat...</td></tr>';
+
+  fetch(WEBAPP_URL+'?action=pivotext&tgl='+encodeURIComponent(tgl))
     .then(function(r){ return r.json(); })
     .then(function(res){
-      btn.disabled=false;
-      if(!res||!res.ok){
-        document.getElementById('list').innerHTML='<div class="msg bad">'+esc(res&&res.error?res.error:'Gagal memuat data')+'</div>';
-        document.getElementById('updated').textContent='Gagal memuat';
-        return;
-      }
-      data={headers:res.headers||[], rows:res.rows||[]};
-      document.getElementById('updated').textContent='Diperbarui: '+(res.updatedAt||'-');
-      render();
+      if(!res||!res.ok){ tbody.innerHTML='<tr><td colspan="3" class="msg bad">'+esc(res&&res.error?res.error:'Gagal memuat')+'</td></tr>'; return; }
+      if(!res.groups.length){ tbody.innerHTML='<tr><td colspan="3" class="msg">Tidak ada data EXT pada tanggal ini.</td></tr>'; return; }
+
+      var html='';
+      res.groups.forEach(function(g){
+        g.rows.forEach(function(r,i){
+          html+='<tr>'+
+            (i===0 ? '<td class="ext" rowspan="'+g.rows.length+'">'+esc(g.ext)+'</td>' : '')+
+            '<td>'+esc(r.ukuran)+'</td>'+
+            '<td class="num">'+fmt(r.berat)+'</td></tr>';
+        });
+        html+='<tr class="sub"><td colspan="2">Total EXT '+esc(g.ext)+'</td><td class="num">'+fmt(g.total)+'</td></tr>';
+      });
+      html+='<tr class="grand"><td colspan="2">TOTAL KESELURUHAN</td><td class="num">'+fmt(res.grand)+'</td></tr>';
+      tbody.innerHTML=html;
     })
-    .catch(function(e){
-      btn.disabled=false;
-      document.getElementById('list').innerHTML='<div class="msg bad">Gagal memuat: '+esc(e.message)+'</div>';
-    });
+    .catch(function(e){ tbody.innerHTML='<tr><td colspan="3" class="msg bad">Gagal: '+esc(e.message)+'</td></tr>'; });
 }
 
-function render(){
-  var list=document.getElementById('list');
-  var q=document.getElementById('cari').value.trim().toLowerCase();
-  var cocok=data.rows.filter(function(row){
-    if(!q) return true;
-    return row.some(function(c){ return String(c).toLowerCase().indexOf(q)!==-1; });
-  });
-
-  document.getElementById('info').textContent=cocok.length+' dari '+data.rows.length+' baris';
-
-  if(!data.rows.length){
-    list.innerHTML='<div class="msg">Tidak ada data di sheet STOK AKHIR SHEET.</div>';
-    return;
-  }
-  if(!cocok.length){
-    list.innerHTML='<div class="msg">Tidak ada data yang cocok.</div>';
-    return;
-  }
-
-  var html='';
-  cocok.forEach(function(row){
-    // Judul kartu: kolom pertama yang berisi teks
-    var titleIdx=row.findIndex(function(c){ return String(c).trim()!==''; });
-    var title=titleIdx>=0?String(row[titleIdx]):'-';
-    html+='<div class="card"><div class="title">'+esc(title)+'</div>';
-    data.headers.forEach(function(h,i){
-      if(i===titleIdx) return;
-      html+='<div class="kv"><span class="k">'+esc(h)+'</span><span class="v">'+esc(fmtVal(row[i]))+'</span></div>';
-    });
-    html+='</div>';
-  });
-  list.innerHTML=html;
-}
-
+document.getElementById('fTgl').value=tglHariIni();
 muat();
 </script>
 </body>
