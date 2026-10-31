@@ -22,7 +22,7 @@
   th,td{padding:8px 10px;border-bottom:1px solid var(--line);}
   thead th{background:#EEF2F7;text-align:left;font-size:12px;text-transform:uppercase;color:var(--mute);}
   th.num,td.num{text-align:right;font-family:'Roboto Mono',monospace;}
-  td.ext{font-weight:800;vertical-align:top;border-right:1px solid var(--line);background:#FAFBFC;}
+  td.uk{font-weight:800;vertical-align:top;border-right:1px solid var(--line);background:#FAFBFC;}
   tr.sub td{background:#EFF6FF;font-weight:800;}
   tr.grand td{background:var(--accent);color:#fff;font-weight:800;}
   .msg{padding:16px;color:var(--mute);text-align:center;font-size:13px;}
@@ -43,7 +43,7 @@
 <div class="wrap">
   <table>
     <thead>
-      <tr><th>EXT</th><th>Ukuran</th><th class="num">Berat</th></tr>
+      <tr><th>Ukuran</th><th>EXT</th><th class="num">Berat</th></tr>
     </thead>
     <tbody id="tbody"><tr><td colspan="3" class="msg">Pilih tanggal lalu tekan Tampilkan.</td></tr></tbody>
   </table>
@@ -74,11 +74,11 @@ function muat(){
       res.groups.forEach(function(g){
         g.rows.forEach(function(r,i){
           html+='<tr>'+
-            (i===0 ? '<td class="ext" rowspan="'+g.rows.length+'">'+esc(g.ext)+'</td>' : '')+
-            '<td>'+esc(r.ukuran)+'</td>'+
+            (i===0 ? '<td class="uk" rowspan="'+g.rows.length+'">'+esc(g.ukuran)+'</td>' : '')+
+            '<td>EXT '+esc(r.ext)+'</td>'+
             '<td class="num">'+fmt(r.berat)+'</td></tr>';
         });
-        html+='<tr class="sub"><td colspan="2">Total EXT '+esc(g.ext)+'</td><td class="num">'+fmt(g.total)+'</td></tr>';
+        html+='<tr class="sub"><td colspan="2">Total '+esc(g.ukuran)+'</td><td class="num">'+fmt(g.total)+'</td></tr>';
       });
       html+='<tr class="grand"><td colspan="2">TOTAL KESELURUHAN</td><td class="num">'+fmt(res.grand)+'</td></tr>';
       tbody.innerHTML=html;
