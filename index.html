@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rekap EXT</title>
+<title>Rekap Stok per Ukuran</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1D4E89">
 <link rel="icon" href="icon-192.png">
@@ -12,11 +12,9 @@
   :root{--bg:#F3F4F6;--card:#FFF;--ink:#14181F;--mute:#5B6472;--line:#E3E6EA;--accent:#1D4E89;--bad:#B91C1C;}
   *{box-sizing:border-box;}
   body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:16px;}
-  h1{font-size:16px;font-weight:800;margin:0 0 10px;}
-  .tgl-bar{display:flex;gap:8px;margin-bottom:12px;}
-  .tgl-bar input{flex:1;padding:10px 12px;font-size:15px;border:1px solid var(--line);border-radius:8px;background:#fff;}
-  .tgl-bar button{padding:10px 14px;font-size:13px;font-weight:700;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;}
-  .judul-tgl{font-size:15px;font-weight:800;margin:6px 0 10px;}
+  h1{font-size:16px;font-weight:800;margin:0 0 4px;}
+  .upd{font-size:12px;color:var(--mute);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .upd button{padding:8px 12px;font-size:12.5px;font-weight:700;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;}
   .wrap{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow-x:auto;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th,td{padding:8px 10px;border-bottom:1px solid var(--line);}
@@ -31,21 +29,18 @@
 </head>
 <body>
 
-<h1>Rekap EXT</h1>
-
-<div class="tgl-bar">
-  <input type="date" id="fTgl">
-  <button onclick="muat()">Tampilkan</button>
+<h1>Rekap Stok per Ukuran</h1>
+<div class="upd">
+  <span id="upd">Memuat...</span>
+  <button onclick="muat()">Muat Ulang</button>
 </div>
-
-<div class="judul-tgl" id="judulTgl">-</div>
 
 <div class="wrap">
   <table>
     <thead>
       <tr><th>Ukuran</th><th>EXT</th><th class="num">Berat</th></tr>
     </thead>
-    <tbody id="tbody"><tr><td colspan="3" class="msg">Pilih tanggal lalu tekan Tampilkan.</td></tr></tbody>
+    <tbody id="tbody"><tr><td colspan="3" class="msg">Memuat data...</td></tr></tbody>
   </table>
 </div>
 
@@ -54,21 +49,22 @@ var WEBAPP_URL='https://script.google.com/macros/s/AKfycbxp5L0rGdC0ki2M18YjNnylr
 
 function esc(s){ return String(s===null||s===undefined?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function fmt(n){ return Number(n||0).toLocaleString('id-ID',{maximumFractionDigits:2}); }
-function tglHariIni(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function tglTampil(iso){ var p=String(iso).split('-'); return p.length===3 ? p[2]+'-'+p[1]+'-'+p[0] : iso; }
 
 function muat(){
-  var tgl=document.getElementById('fTgl').value;
   var tbody=document.getElementById('tbody');
-  if(!tgl){ tbody.innerHTML='<tr><td colspan="3" class="msg bad">Pilih tanggal dulu.</td></tr>'; return; }
-  document.getElementById('judulTgl').textContent='Tanggal: '+tglTampil(tgl);
-  tbody.innerHTML='<tr><td colspan="3" class="msg">Memuat...</td></tr>';
+  document.getElementById('upd').textContent='Memuat...';
+  tbody.innerHTML='<tr><td colspan="3" class="msg">Memuat data...</td></tr>';
 
-  fetch(WEBAPP_URL+'?action=pivotext&tgl='+encodeURIComponent(tgl))
+  fetch(WEBAPP_URL+'?action=stokukuran')
     .then(function(r){ return r.json(); })
     .then(function(res){
-      if(!res||!res.ok){ tbody.innerHTML='<tr><td colspan="3" class="msg bad">'+esc(res&&res.error?res.error:'Gagal memuat')+'</td></tr>'; return; }
-      if(!res.groups.length){ tbody.innerHTML='<tr><td colspan="3" class="msg">Tidak ada data EXT pada tanggal ini.</td></tr>'; return; }
+      if(!res||!res.ok){
+        document.getElementById('upd').textContent='Gagal memuat';
+        tbody.innerHTML='<tr><td colspan="3" class="msg bad">'+esc(res&&res.error?res.error:'Gagal memuat')+'</td></tr>';
+        return;
+      }
+      document.getElementById('upd').textContent='Diperbarui: '+res.updatedAt+' | '+res.jumlahBaris+' baris';
+      if(!res.groups.length){ tbody.innerHTML='<tr><td colspan="3" class="msg">Tidak ada data stok.</td></tr>'; return; }
 
       var html='';
       res.groups.forEach(function(g){
@@ -83,10 +79,12 @@ function muat(){
       html+='<tr class="grand"><td colspan="2">TOTAL KESELURUHAN</td><td class="num">'+fmt(res.grand)+'</td></tr>';
       tbody.innerHTML=html;
     })
-    .catch(function(e){ tbody.innerHTML='<tr><td colspan="3" class="msg bad">Gagal: '+esc(e.message)+'</td></tr>'; });
+    .catch(function(e){
+      document.getElementById('upd').textContent='Gagal memuat';
+      tbody.innerHTML='<tr><td colspan="3" class="msg bad">Gagal: '+esc(e.message)+'</td></tr>';
+    });
 }
 
-document.getElementById('fTgl').value=tglHariIni();
 muat();
 </script>
 </body>
