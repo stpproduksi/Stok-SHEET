@@ -15,15 +15,23 @@
   h1{font-size:16px;font-weight:800;margin:0 0 4px;}
   .upd{font-size:12px;color:var(--mute);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
   .upd button{padding:8px 12px;font-size:12.5px;font-weight:700;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;}
-  .wrap{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow-x:auto;}
+  .grand{background:var(--accent);color:#fff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;font-weight:800;}
+  .grand .num{font-family:'Roboto Mono',monospace;}
+  .uk-card{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+  .uk-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:none;background:#fff;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);}
+  .uk-head .nm{font-size:14px;font-weight:800;}
+  .uk-head .meta{font-size:11.5px;color:var(--mute);margin-top:2px;}
+  .uk-head .tot{font-family:'Roboto Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;}
+  .uk-head .chev{font-size:12px;color:var(--mute);margin-left:6px;transition:transform .15s;}
+  .uk-card.open .chev{transform:rotate(180deg);}
+  .uk-body{display:none;border-top:1px solid var(--line);background:#FAFBFC;}
+  .uk-card.open .uk-body{display:block;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  th,td{padding:8px 10px;border-bottom:1px solid var(--line);}
-  thead th{background:#EEF2F7;text-align:left;font-size:12px;text-transform:uppercase;color:var(--mute);}
+  th,td{padding:7px 14px;border-bottom:1px solid var(--line);}
+  th{font-size:11px;text-transform:uppercase;color:var(--mute);text-align:left;background:#EEF2F7;}
   th.num,td.num{text-align:right;font-family:'Roboto Mono',monospace;}
   td.cs{font-family:'Roboto Mono',monospace;}
-  td.uk{font-weight:800;vertical-align:top;border-right:1px solid var(--line);background:#FAFBFC;}
-  tr.sub td{background:#EFF6FF;font-weight:800;}
-  tr.grand td{background:var(--accent);color:#fff;font-weight:800;}
+  tr:last-child td{border-bottom:none;}
   .msg{padding:16px;color:var(--mute);text-align:center;font-size:13px;}
   .msg.bad{color:var(--bad);font-weight:700;}
 </style>
@@ -36,14 +44,9 @@
   <button onclick="muat()">Muat Ulang</button>
 </div>
 
-<div class="wrap">
-  <table>
-    <thead>
-      <tr><th>Ukuran</th><th>Carsheet</th><th class="num">Berat</th></tr>
-    </thead>
-    <tbody id="tbody"><tr><td colspan="3" class="msg">Memuat data...</td></tr></tbody>
-  </table>
-</div>
+<div class="grand"><span>TOTAL KESELURUHAN</span><span class="num" id="grand">-</span></div>
+
+<div id="list"><div class="msg">Memuat data...</div></div>
 
 <script>
 var WEBAPP_URL='https://script.google.com/macros/s/AKfycbxp5L0rGdC0ki2M18YjNnylr0aAOXDLCzW5k84fJhT7aCkdlFrPeOY2tH0b75MMjDJh/exec';
@@ -51,38 +54,49 @@ var WEBAPP_URL='https://script.google.com/macros/s/AKfycbxp5L0rGdC0ki2M18YjNnylr
 function esc(s){ return String(s===null||s===undefined?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function fmt(n){ return Number(n||0).toLocaleString('id-ID',{maximumFractionDigits:2}); }
 
+function bukaTutup(el){
+  el.closest('.uk-card').classList.toggle('open');
+}
+
 function muat(){
-  var tbody=document.getElementById('tbody');
+  var list=document.getElementById('list');
   document.getElementById('upd').textContent='Memuat...';
-  tbody.innerHTML='<tr><td colspan="3" class="msg">Memuat data...</td></tr>';
+  list.innerHTML='<div class="msg">Memuat data...</div>';
 
   fetch(WEBAPP_URL+'?action=stokukuran')
     .then(function(r){ return r.json(); })
     .then(function(res){
       if(!res||!res.ok){
         document.getElementById('upd').textContent='Gagal memuat';
-        tbody.innerHTML='<tr><td colspan="3" class="msg bad">'+esc(res&&res.error?res.error:'Gagal memuat')+'</td></tr>';
+        list.innerHTML='<div class="msg bad">'+esc(res&&res.error?res.error:'Gagal memuat')+'</div>';
         return;
       }
       document.getElementById('upd').textContent='Diperbarui: '+res.updatedAt+' | '+res.jumlahBaris+' baris';
-      if(!res.groups.length){ tbody.innerHTML='<tr><td colspan="3" class="msg">Tidak ada data stok.</td></tr>'; return; }
+      document.getElementById('grand').textContent=fmt(res.grand);
+      if(!res.groups.length){ list.innerHTML='<div class="msg">Tidak ada data stok.</div>'; return; }
 
       var html='';
       res.groups.forEach(function(g){
-        g.rows.forEach(function(r,i){
-          html+='<tr>'+
-            (i===0 ? '<td class="uk" rowspan="'+g.rows.length+'">'+esc(g.ukuran)+'</td>' : '')+
-            '<td class="cs">'+esc(r.carsheet)+'</td>'+
-            '<td class="num">'+fmt(r.berat)+'</td></tr>';
+        var detail='<table><thead><tr><th>No. Carsheet</th><th class="num">Berat</th></tr></thead><tbody>';
+        g.rows.forEach(function(r){
+          detail+='<tr><td class="cs">'+esc(r.carsheet)+'</td><td class="num">'+fmt(r.berat)+'</td></tr>';
         });
-        html+='<tr class="sub"><td colspan="2">Total '+esc(g.ukuran)+'</td><td class="num">'+fmt(g.total)+'</td></tr>';
+        detail+='</tbody></table>';
+
+        html+='<div class="uk-card">'+
+          '<button class="uk-head" onclick="bukaTutup(this)">'+
+            '<span><div class="nm">'+esc(g.ukuran)+'</div>'+
+            '<div class="meta">'+g.rows.length+' baris</div></span>'+
+            '<span style="display:flex;align-items:center"><span class="tot">'+fmt(g.total)+'</span><span class="chev">▼</span></span>'+
+          '</button>'+
+          '<div class="uk-body">'+detail+'</div>'+
+        '</div>';
       });
-      html+='<tr class="grand"><td colspan="2">TOTAL KESELURUHAN</td><td class="num">'+fmt(res.grand)+'</td></tr>';
-      tbody.innerHTML=html;
+      list.innerHTML=html;
     })
     .catch(function(e){
       document.getElementById('upd').textContent='Gagal memuat';
-      tbody.innerHTML='<tr><td colspan="3" class="msg bad">Gagal: '+esc(e.message)+'</td></tr>';
+      list.innerHTML='<div class="msg bad">Gagal: '+esc(e.message)+'</div>';
     });
 }
 
