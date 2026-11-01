@@ -15,8 +15,10 @@
   h1{font-size:16px;font-weight:800;margin:0 0 4px;}
   .upd{font-size:12px;color:var(--mute);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
   .upd button{padding:8px 12px;font-size:12.5px;font-weight:700;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;}
-  .grand{background:var(--accent);color:#fff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;font-weight:800;}
+  .grand{background:var(--accent);color:#fff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;font-weight:800;}
   .grand .num{font-family:'Roboto Mono',monospace;}
+  .btn-wa{width:100%;padding:13px;font-size:14px;font-weight:700;border:none;border-radius:8px;background:#25D366;color:#fff;cursor:pointer;margin-bottom:12px;}
+  .btn-wa:disabled{opacity:.5;cursor:not-allowed;}
   .uk-card{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;}
   .uk-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:none;background:#fff;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);}
   .uk-head .nm{font-size:14px;font-weight:800;}
@@ -41,15 +43,18 @@
 <h1>Update Stok SHEET</h1>
 <div class="upd">
   <span id="upd">Memuat...</span>
-  <button onclick="muat()">Refresh</button>
+  <button onclick="muat()">Muat Ulang</button>
 </div>
 
 <div class="grand"><span>TOTAL KESELURUHAN</span><span class="num" id="grand">-</span></div>
+
+<button class="btn-wa" id="btnWa" onclick="shareGambar()" disabled>Share WA (Gambar)</button>
 
 <div id="list"><div class="msg">Memuat data...</div></div>
 
 <script>
 var WEBAPP_URL='https://script.google.com/macros/s/AKfycbxp5L0rGdC0ki2M18YjNnylr0aAOXDLCzW5k84fJhT7aCkdlFrPeOY2tH0b75MMjDJh/exec';
+var lastRes=null;
 
 function esc(s){ return String(s===null||s===undefined?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function fmt(n){ return Number(n||0).toLocaleString('id-ID',{maximumFractionDigits:2}); }
@@ -61,6 +66,7 @@ function bukaTutup(el){
 function muat(){
   var list=document.getElementById('list');
   document.getElementById('upd').textContent='Memuat...';
+  document.getElementById('btnWa').disabled=true;
   list.innerHTML='<div class="msg">Memuat data...</div>';
 
   fetch(WEBAPP_URL+'?action=stokukuran')
@@ -71,6 +77,7 @@ function muat(){
         list.innerHTML='<div class="msg bad">'+esc(res&&res.error?res.error:'Gagal memuat')+'</div>';
         return;
       }
+      lastRes=res;
       document.getElementById('upd').textContent='Diperbarui: '+res.updatedAt+' | '+res.jumlahBaris+' baris';
       document.getElementById('grand').textContent=fmt(res.grand);
       if(!res.groups.length){ list.innerHTML='<div class="msg">Tidak ada data stok.</div>'; return; }
@@ -93,11 +100,92 @@ function muat(){
         '</div>';
       });
       list.innerHTML=html;
+      document.getElementById('btnWa').disabled=false;
     })
     .catch(function(e){
       document.getElementById('upd').textContent='Gagal memuat';
       list.innerHTML='<div class="msg bad">Gagal: '+esc(e.message)+'</div>';
     });
+}
+
+// Gambar rekap: hanya total per ukuran dan total keseluruhan
+function buatGambar(res){
+  var W=600, pad=28, rowH=44, headH=130;
+  var n=res.groups.length;
+  var H=headH+n*rowH+110;
+  var c=document.createElement('canvas');
+  c.width=W; c.height=H;
+  var ctx=c.getContext('2d');
+
+  // Latar
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
+
+  // Header biru
+  ctx.fillStyle='#1D4E89'; ctx.fillRect(0,0,W,96);
+  ctx.fillStyle='#FFFFFF';
+  ctx.font='800 26px Arial, Helvetica, sans-serif';
+  ctx.fillText('REKAP STOK PER UKURAN', pad, 46);
+  ctx.font='14px Arial, Helvetica, sans-serif';
+  ctx.fillText('STP LAWANG  |  '+res.updatedAt, pad, 74);
+
+  // Judul kolom
+  var y=headH-18;
+  ctx.fillStyle='#5B6472';
+  ctx.font='700 14px Arial, Helvetica, sans-serif';
+  ctx.fillText('UKURAN', pad, y);
+  ctx.textAlign='right';
+  ctx.fillText('TOTAL BERAT (KG)', W-pad, y);
+  ctx.textAlign='left';
+
+  // Baris per ukuran
+  ctx.strokeStyle='#E3E6EA'; ctx.lineWidth=1;
+  res.groups.forEach(function(g,i){
+    var top=headH+i*rowH;
+    if(i%2===1){ ctx.fillStyle='#F7F8FA'; ctx.fillRect(0,top,W,rowH); }
+    ctx.fillStyle='#14181F';
+    ctx.font='700 17px Arial, Helvetica, sans-serif';
+    ctx.fillText(g.ukuran, pad, top+rowH/2+6);
+    ctx.textAlign='right';
+    ctx.font='700 17px "Courier New", monospace';
+    ctx.fillText(fmt(g.total), W-pad, top+rowH/2+6);
+    ctx.textAlign='left';
+    ctx.beginPath(); ctx.moveTo(0,top+rowH); ctx.lineTo(W,top+rowH); ctx.stroke();
+  });
+
+  // Total keseluruhan
+  var ty=headH+n*rowH+10;
+  ctx.fillStyle='#1D4E89'; ctx.fillRect(0,ty,W,64);
+  ctx.fillStyle='#FFFFFF';
+  ctx.font='800 18px Arial, Helvetica, sans-serif';
+  ctx.fillText('TOTAL KESELURUHAN', pad, ty+40);
+  ctx.textAlign='right';
+  ctx.font='800 20px "Courier New", monospace';
+  ctx.fillText(fmt(res.grand)+' kg', W-pad, ty+40);
+  ctx.textAlign='left';
+
+  return c;
+}
+
+function shareGambar(){
+  if(!lastRes||!lastRes.groups||!lastRes.groups.length){ alert('Data belum dimuat.'); return; }
+  var c=buatGambar(lastRes);
+  c.toBlob(function(blob){
+    if(!blob){ alert('Gagal membuat gambar.'); return; }
+    var file=new File([blob],'rekap_stok.png',{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file], title:'Rekap Stok', text:'Rekap Stok per Ukuran'})
+        .catch(function(err){
+          if(err && err.name!=='AbortError') alert('Gagal membuka share: '+err.message);
+        });
+    } else {
+      // Browser tidak bisa kirim file: unduh gambar, lalu buka WhatsApp
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download='rekap_stok.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      window.open('https://wa.me/?text='+encodeURIComponent('Rekap Stok per Ukuran terlampir. Lampirkan gambar yang baru diunduh.'),'_blank');
+    }
+  }, 'image/png');
 }
 
 muat();
