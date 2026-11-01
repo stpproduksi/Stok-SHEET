@@ -3,54 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Update Stok SHEET</title>
+<title>Stok Sheet</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1D4E89">
 <link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-title" content="Stok Sheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#F3F4F6;--card:#FFF;--ink:#14181F;--mute:#5B6472;--line:#E3E6EA;--accent:#1D4E89;--bad:#B91C1C;}
+  :root{--bg:#F3F4F6;--card:#FFF;--ink:#14181F;--mute:#5B6472;--line:#E3E6EA;--accent:#1D4E89;--good:#157F3C;--bad:#B91C1C;}
   *{box-sizing:border-box;}
-  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);margin:0;padding:16px;}
-  h1{font-size:16px;font-weight:800;margin:0 0 4px;}
-  .upd{font-size:12px;color:var(--mute);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-  .upd button{padding:8px 12px;font-size:12.5px;font-weight:700;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;}
-  .grand{background:var(--accent);color:#fff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;font-weight:800;}
-  .grand .num{font-family:'Roboto Mono',monospace;}
-  .btn-wa{width:100%;padding:13px;font-size:14px;font-weight:700;border:none;border-radius:8px;background:#25D366;color:#fff;cursor:pointer;margin-bottom:12px;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+  .topbar{background:var(--accent);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px;position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .topbar h1{font-size:17px;font-weight:800;margin:0;letter-spacing:.02em;}
+  .topbar button{padding:8px 12px;font-size:12.5px;font-weight:700;border:none;border-radius:8px;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;}
+  .topbar button:disabled{opacity:.5;}
+  .wrap{padding:12px 12px 28px;}
+  .updated{font-size:11.5px;color:var(--mute);text-align:center;margin:2px 0 10px;}
+
+  .total-card{background:var(--accent);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+  .total-card .lbl{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.9;}
+  .total-card .num{font-family:'Roboto Mono',monospace;font-size:20px;font-weight:700;}
+
+  .btn-wa{width:100%;padding:14px;font-size:15px;font-weight:700;border:none;border-radius:10px;background:#25D366;color:#fff;cursor:pointer;margin-bottom:12px;}
   .btn-wa:disabled{opacity:.5;cursor:not-allowed;}
-  .uk-card{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;}
-  .uk-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:none;background:#fff;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);}
-  .uk-head .nm{font-size:14px;font-weight:800;}
+
+  .uk-card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+  .uk-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px;border:none;background:#fff;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);}
+  .uk-head .nm{font-size:15px;font-weight:800;}
   .uk-head .meta{font-size:11.5px;color:var(--mute);margin-top:2px;}
+  .uk-head .right{display:flex;align-items:center;gap:6px;}
   .uk-head .tot{font-family:'Roboto Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;}
-  .uk-head .chev{font-size:12px;color:var(--mute);margin-left:6px;transition:transform .15s;}
+  .uk-head .chev{font-size:11px;color:var(--mute);transition:transform .15s;}
   .uk-card.open .chev{transform:rotate(180deg);}
   .uk-body{display:none;border-top:1px solid var(--line);background:#FAFBFC;}
   .uk-card.open .uk-body{display:block;}
+
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  th,td{padding:7px 14px;border-bottom:1px solid var(--line);}
+  th,td{padding:9px 14px;border-bottom:1px solid var(--line);}
   th{font-size:11px;text-transform:uppercase;color:var(--mute);text-align:left;background:#EEF2F7;}
   th.num,td.num{text-align:right;font-family:'Roboto Mono',monospace;}
-  td.cs{font-family:'Roboto Mono',monospace;}
+  td.cs{font-family:'Roboto Mono',monospace;font-weight:600;}
   tr:last-child td{border-bottom:none;}
-  .msg{padding:16px;color:var(--mute);text-align:center;font-size:13px;}
+
+  .msg{padding:18px;color:var(--mute);text-align:center;font-size:13px;}
   .msg.bad{color:var(--bad);font-weight:700;}
 </style>
 </head>
 <body>
 
-<h1>Update Stok SHEET</h1>
-<div class="upd">
-  <span id="upd">Memuat...</span>
+<div class="topbar">
+  <h1>STOK SHEET</h1>
   <button onclick="muat()">Muat Ulang</button>
 </div>
 
-<div class="grand"><span>TOTAL</span><span class="num" id="grand">-</span></div>
+<div class="wrap">
+  <div class="updated" id="upd">Memuat...</div>
 
-<button class="btn-wa" id="btnWa" onclick="shareGambar()" disabled>Share WA (Gambar)</button>
+  <div class="total-card"><span class="lbl">Total Keseluruhan</span><span class="num" id="grand">-</span></div>
 
-<div id="list"><div class="msg">Memuat data...</div></div>
+  <button class="btn-wa" id="btnWa" onclick="shareGambar()" disabled>Share WA (Gambar)</button>
+
+  <div id="list"><div class="msg">Memuat data...</div></div>
+</div>
 
 <script>
 var WEBAPP_URL='https://script.google.com/macros/s/AKfycbxp5L0rGdC0ki2M18YjNnylr0aAOXDLCzW5k84fJhT7aCkdlFrPeOY2tH0b75MMjDJh/exec';
@@ -59,9 +77,7 @@ var lastRes=null;
 function esc(s){ return String(s===null||s===undefined?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function fmt(n){ return Number(n||0).toLocaleString('id-ID',{maximumFractionDigits:2}); }
 
-function bukaTutup(el){
-  el.closest('.uk-card').classList.toggle('open');
-}
+function bukaTutup(el){ el.closest('.uk-card').classList.toggle('open'); }
 
 function muat(){
   var list=document.getElementById('list');
@@ -79,7 +95,7 @@ function muat(){
       }
       lastRes=res;
       document.getElementById('upd').textContent='Diperbarui: '+res.updatedAt+' | '+res.jumlahBaris+' baris';
-      document.getElementById('grand').textContent=fmt(res.grand);
+      document.getElementById('grand').textContent=fmt(res.grand)+' kg';
       if(!res.groups.length){ list.innerHTML='<div class="msg">Tidak ada data stok.</div>'; return; }
 
       var html='';
@@ -94,7 +110,7 @@ function muat(){
           '<button class="uk-head" onclick="bukaTutup(this)">'+
             '<span><div class="nm">'+esc(g.ukuran)+'</div>'+
             '<div class="meta">'+g.rows.length+' baris</div></span>'+
-            '<span style="display:flex;align-items:center"><span class="tot">'+fmt(g.total)+'</span><span class="chev">▼</span></span>'+
+            '<span class="right"><span class="tot">'+fmt(g.total)+'</span><span class="chev">▼</span></span>'+
           '</button>'+
           '<div class="uk-body">'+detail+'</div>'+
         '</div>';
@@ -108,7 +124,7 @@ function muat(){
     });
 }
 
-// Gambar rekap: hanya total per ukuran dan total keseluruhan
+// Gambar rekap: total per ukuran dan total keseluruhan
 function buatGambar(res){
   var W=600, pad=28, rowH=44, headH=130;
   var n=res.groups.length;
@@ -117,10 +133,8 @@ function buatGambar(res){
   c.width=W; c.height=H;
   var ctx=c.getContext('2d');
 
-  // Latar
   ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
 
-  // Header biru
   ctx.fillStyle='#1D4E89'; ctx.fillRect(0,0,W,96);
   ctx.fillStyle='#FFFFFF';
   ctx.font='800 26px Arial, Helvetica, sans-serif';
@@ -128,7 +142,6 @@ function buatGambar(res){
   ctx.font='14px Arial, Helvetica, sans-serif';
   ctx.fillText('STP LAWANG  |  '+res.updatedAt, pad, 74);
 
-  // Judul kolom
   var y=headH-18;
   ctx.fillStyle='#5B6472';
   ctx.font='700 14px Arial, Helvetica, sans-serif';
@@ -137,7 +150,6 @@ function buatGambar(res){
   ctx.fillText('TOTAL BERAT (KG)', W-pad, y);
   ctx.textAlign='left';
 
-  // Baris per ukuran
   ctx.strokeStyle='#E3E6EA'; ctx.lineWidth=1;
   res.groups.forEach(function(g,i){
     var top=headH+i*rowH;
@@ -152,7 +164,6 @@ function buatGambar(res){
     ctx.beginPath(); ctx.moveTo(0,top+rowH); ctx.lineTo(W,top+rowH); ctx.stroke();
   });
 
-  // Total keseluruhan
   var ty=headH+n*rowH+10;
   ctx.fillStyle='#1D4E89'; ctx.fillRect(0,ty,W,64);
   ctx.fillStyle='#FFFFFF';
@@ -178,7 +189,6 @@ function shareGambar(){
           if(err && err.name!=='AbortError') alert('Gagal membuka share: '+err.message);
         });
     } else {
-      // Browser tidak bisa kirim file: unduh gambar, lalu buka WhatsApp
       var url=URL.createObjectURL(blob);
       var a=document.createElement('a'); a.href=url; a.download='rekap_stok.png';
       document.body.appendChild(a); a.click(); a.remove();
