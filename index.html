@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Update Stok SHEET</title>
+<title>Rekap Stok per Ukuran</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1D4E89">
 <link rel="icon" href="icon-192.png">
@@ -40,13 +40,13 @@
 </head>
 <body>
 
-<h1>Update Stok SHEET</h1>
+<h1>Rekap Stok per Ukuran</h1>
 <div class="upd">
   <span id="upd">Memuat...</span>
-  <button onclick="muat()">Refresh</button>
+  <button onclick="muat()">Muat Ulang</button>
 </div>
 
-<div class="grand"><span>TOTAL</span><span class="num" id="grand">-</span></div>
+<div class="grand"><span>TOTAL KESELURUHAN</span><span class="num" id="grand">-</span></div>
 
 <button class="btn-wa" id="btnWa" onclick="shareGambar()" disabled>Share WA (Gambar)</button>
 
@@ -124,7 +124,7 @@ function buatGambar(res){
   ctx.fillStyle='#1D4E89'; ctx.fillRect(0,0,W,96);
   ctx.fillStyle='#FFFFFF';
   ctx.font='800 26px Arial, Helvetica, sans-serif';
-  ctx.fillText('UPDATE STOK SHEET', pad, 46);
+  ctx.fillText('REKAP STOK PER UKURAN', pad, 46);
   ctx.font='14px Arial, Helvetica, sans-serif';
   ctx.fillText('STP LAWANG  |  '+res.updatedAt, pad, 74);
 
@@ -157,7 +157,7 @@ function buatGambar(res){
   ctx.fillStyle='#1D4E89'; ctx.fillRect(0,ty,W,64);
   ctx.fillStyle='#FFFFFF';
   ctx.font='800 18px Arial, Helvetica, sans-serif';
-  ctx.fillText('TOTAL', pad, ty+40);
+  ctx.fillText('TOTAL KESELURUHAN', pad, ty+40);
   ctx.textAlign='right';
   ctx.font='800 20px "Courier New", monospace';
   ctx.fillText(fmt(res.grand)+' kg', W-pad, ty+40);
