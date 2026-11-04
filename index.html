@@ -94,7 +94,7 @@ function muat(){
         return;
       }
       lastRes=res;
-      document.getElementById('upd').textContent='Diperbarui: '+res.updatedAt+' | '+res.jumlahBaris+' baris';
+      document.getElementById('upd').textContent='Diperbarui: '+res.updatedAt+' | '+res.jumlahBaris+' roll';
       document.getElementById('grand').textContent=fmt(res.grand)+' kg';
       if(!res.groups.length){ list.innerHTML='<div class="msg">Tidak ada data stok.</div>'; return; }
 
@@ -109,7 +109,7 @@ function muat(){
         html+='<div class="uk-card">'+
           '<button class="uk-head" onclick="bukaTutup(this)">'+
             '<span><div class="nm">'+esc(g.ukuran)+'</div>'+
-            '<div class="meta">'+g.rows.length+' baris</div></span>'+
+            '<div class="meta">'+g.rows.length+' roll</div></span>'+
             '<span class="right"><span class="tot">'+fmt(g.total)+'</span><span class="chev">▼</span></span>'+
           '</button>'+
           '<div class="uk-body">'+detail+'</div>'+
