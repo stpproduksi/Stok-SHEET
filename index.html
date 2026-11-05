@@ -100,9 +100,9 @@ function muat(){
 
       var html='';
       res.groups.forEach(function(g){
-        var detail='<table><thead><tr><th>No. Carsheet</th><th class="num">Berat</th></tr></thead><tbody>';
+        var detail='<table><thead><tr><th>No. Carsheet</th><th>Untuk TF</th><th class="num">Berat</th></tr></thead><tbody>';
         g.rows.forEach(function(r){
-          detail+='<tr><td class="cs">'+esc(r.carsheet)+'</td><td class="num">'+fmt(r.berat)+'</td></tr>';
+          detail+='<tr><td class="cs">'+esc(r.carsheet)+'</td><td class="cs">'+esc(r.untukTf)+'</td><td class="num">'+fmt(r.berat)+'</td></tr>';
         });
         detail+='</tbody></table>';
 
