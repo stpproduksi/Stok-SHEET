@@ -2,101 +2,385 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Stok per Waktu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Input Hasil Produksi FG</title>
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1D4E89">
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <style>
-  body{font-family:Arial,sans-serif;background:#F3F4F6;margin:0;padding:12px;font-size:15px;color:#14181F}
-  h1{font-size:17px;margin:4px 0 10px}
-  .card{background:#fff;border-radius:12px;padding:12px;margin:8px 0;box-shadow:0 1px 3px #0002}
-  .bad{color:#B91C1C;font-weight:bold}
-  input,select{width:100%;box-sizing:border-box;padding:10px;margin:4px 0 10px;font-size:15px;border:1px solid #ccc;border-radius:8px}
-  label{font-size:12px;color:#5B6472;font-weight:bold;text-transform:uppercase}
-  .btn{display:block;width:100%;padding:12px;margin-top:8px;border:0;border-radius:8px;background:#1D4E89;color:#fff;font-size:15px;font-weight:bold}
-  .btn.wa{background:#25D366}
-  .r{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
-  .r b{font-family:monospace}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .mono{font-family:monospace}
+  :root{--bg:#F3F4F6;--card:#FFF;--ink:#14181F;--mute:#5B6472;--line:#E3E6EA;--accent:#1D4E89;--good:#157F3C;--bad:#B91C1C;}
+  *{box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:18px;margin:0;}
+  h1{font-size:16px;font-weight:800;margin:0 0 2px;} .sub{font-size:11px;color:var(--mute);margin-bottom:16px;}
+  #formCard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;max-width:420px;margin:0 auto;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--mute);margin-bottom:5px;}
+  .field input,.field select{width:100%;padding:11px 12px;font-size:15px;border:1px solid var(--line);border-radius:8px;background:#fff;}
+  .field input:disabled,.field select:disabled{background:#F3F4F6;color:var(--mute);}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,78,137,.15);}
+  .hint{font-size:11.5px;color:var(--mute);margin:-6px 0 14px;}
+  .btn{width:100%;padding:13px;font-size:14px;font-weight:700;border:none;border-radius:8px;color:#fff;cursor:pointer;margin-top:8px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  #btnSave{background:var(--accent);margin-top:4px;}
+  #btnPrint{background:#B45309;}
+  #btnShareWA{background:#25D366;}
+  #btnUlang{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  #btnReset{background:#fff;color:var(--mute);border:1px solid var(--line);font-size:12.5px;padding:10px;}
+  #msg{font-size:12.5px;margin-top:10px;min-height:16px;} #msg.ok{color:var(--good);font-weight:700;} #msg.bad{color:var(--bad);font-weight:700;}
+
+  #ulangPanel{display:none;margin:16px auto 0;max-width:420px;border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff;}
+  .ul-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .ul-head b{font-size:14px;}
+  .ul-head button{background:none;border:none;font-size:13px;color:var(--mute);cursor:pointer;font-weight:700;}
+  .ul-cari{display:flex;gap:8px;margin-bottom:10px;}
+  .ul-cari input{flex:1;padding:10px 12px;font-size:15px;border:1px solid var(--line);border-radius:7px;}
+  .ul-cari button{padding:10px 16px;font-size:14px;font-weight:700;border:none;border-radius:7px;background:var(--accent);color:#fff;cursor:pointer;}
+  #ulangList{max-height:380px;overflow-y:auto;}
+  .ul-item{border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:8px;font-size:12.5px;}
+  .ul-item .t{font-weight:700;font-size:13px;}
+  .ul-item .s{color:var(--mute);font-size:11.5px;margin-top:2px;}
+  .ul-item button{margin-top:6px;width:100%;padding:9px;border:none;border-radius:7px;background:#B45309;color:#fff;font-weight:700;font-size:13px;cursor:pointer;}
+
+  #kitirPrintArea{display:none;}
+  .kitir{width:54mm;margin:0;font-family:'Roboto Mono',monospace;color:#000;padding:0;}
+  .kitir .brand{text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.08em;}
+  .kitir .judul{text-align:center;font-size:11.5px;font-weight:700;margin:1px 0 3px;}
+  .kitir .tag{text-align:center;font-size:11px;font-weight:700;}
+  .kitir hr{border:none;border-top:1px dashed #000;margin:3px 0;}
+  .kitir .ref{text-align:center;font-size:11px;font-weight:700;margin:1px 0 3px;}
+  .kitir .nama{text-align:center;font-size:12px;font-weight:700;margin:3px 0;word-break:break-word;}
+  .kitir .berat-wrap{text-align:center;margin:4px 0;}
+  .kitir .berat-wrap .lbl{font-size:8.5px;letter-spacing:.08em;}
+  .kitir .berat-wrap .val{font-size:20px;font-weight:700;line-height:1.1;}
+  .kitir .rute{text-align:center;font-size:14px;font-weight:700;margin:3px 0;}
+  .kitir .foot{display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-top:3px;}
+  .kitir .barcode-wrap{text-align:center;margin-top:5px;}
+  .kitir .barcode-wrap svg{max-width:52mm;height:24mm;}
+  @media print{
+    body *{visibility:hidden;}
+    #kitirPrintArea, #kitirPrintArea *{visibility:visible;}
+    #kitirPrintArea{display:block;position:absolute;top:0;left:0;}
+    @page{size:58mm auto;margin:0;}
+  }
 </style>
 </head>
 <body>
-<h1>STOK PER WAKTU</h1>
+<h1>Input Hasil Produksi</h1>
+<div class="sub">Isi data hasil produksi, lalu Simpan. Masuk ke sheet FG.</div>
 
-<div class="card">
+<div id="formCard">
   <div class="row2">
-    <div><label>Tanggal</label><input type="date" id="sTgl"></div>
-    <div><label>Jam</label><input type="time" id="sJam"></div>
+    <div class="field"><label>Tanggal</label><input type="date" id="fTanggal"></div>
+    <div class="field"><label>Shift</label>
+      <select id="fShift"><option value="">- pilih -</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+    </div>
   </div>
-  <label>Shift produksi</label>
-  <select id="sShift"><option value="">Semua</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
-  <button class="btn" onclick="sCari()">TAMPILKAN</button>
-  <div id="sBox" style="margin-top:8px"></div>
+
+  <div class="row2">
+    <div class="field"><label>TF</label><select id="fTf"></select></div>
+    <div class="field"><label>Jam</label><input type="time" id="fJam"></div>
+  </div>
+
+  <div class="field"><label>Nama Produk</label><select id="fProduk"><option value="">- memuat daftar -</option></select></div>
+
+  <div class="row2">
+    <div class="field"><label>Qty</label><input type="number" id="fQty" step="1" inputmode="numeric" placeholder="0"></div>
+    <div class="field"><label>Gram</label><input type="number" id="fGram" step="any" inputmode="decimal" placeholder="0"></div>
+  </div>
+
+  <div class="row2">
+    <div class="field"><label>Nama</label><input type="text" id="fNama" placeholder="Nama operator"></div>
+    <div class="field"><label>BS Sheet</label><input type="number" id="fBsSheet" step="any" inputmode="decimal" placeholder="0"></div>
+  </div>
+
+  <div class="field"><label>Waste</label><input type="number" id="fWaste" step="any" inputmode="decimal" placeholder="0"></div>
+
+  <div class="hint">No. Palet dibuat otomatis saat disimpan (format FG-YY/MM/NNN).</div>
+
+  <button id="btnSave" class="btn" onclick="fgSimpan()">Simpan</button>
+  <button id="btnPrint" class="btn" onclick="fgCetak()" disabled>Cetak</button>
+  <button id="btnShareWA" class="btn" onclick="fgShareWa()" disabled>Share WA</button>
+  <button id="btnUlang" class="btn" onclick="fgBukaCari()">Cari Cetak Ulang</button>
+  <button id="btnReset" class="btn" onclick="fgKosongkan()">Kosongkan Form</button>
+  <div id="msg"></div>
+</div>
+
+<div id="ulangPanel">
+  <div class="ul-head">
+    <b>Cari Cetak Ulang</b>
+    <button type="button" onclick="fgTutupCari()">Tutup ✕</button>
+  </div>
+  <div class="ul-cari">
+    <input type="text" id="ulCari" placeholder="Ketik no. palet, mis. FG-26/10/001" autocapitalize="characters" autocomplete="off" onkeydown="if(event.key==='Enter'){fgCariPalet();}">
+    <button type="button" onclick="fgCariPalet()">Cari</button>
+  </div>
+  <div id="ulangList"></div>
+</div>
+
+<div id="kitirPrintArea">
+  <div class="kitir">
+    <div class="brand">STP</div>
+    <div class="judul">HASIL PRODUKSI FG</div>
+    <div class="tag" id="pTag"></div>
+    <div class="ref" id="pPalet">No. Palet: -</div>
+    <hr>
+    <div class="nama" id="pProduk">-</div>
+    <div class="berat-wrap"><div class="lbl">QTY</div><div class="val" id="pQty">-</div></div>
+    <div class="ref" id="pGram"></div>
+    <div class="rute" id="pTf">-</div>
+    <hr>
+    <div class="foot"><span id="pTanggal">-</span><span id="pShift">-</span></div>
+    <div class="foot"><span>Operator:</span><span id="pNama">-</span></div>
+    <div class="barcode-wrap"><svg id="pBarcode"></svg></div>
+  </div>
 </div>
 
 <script>
-var URL_EXEC='https://script.google.com/macros/s/AKfycbxp5L0rGdC0ki2M18YjNnylr0aAOXDLCzW5k84fJhT7aCkdlFrPeOY2tH0b75MMjDJh/exec';
-var sRekap='';
+var WEBAPP_URL='https://script.google.com/macros/s/AKfycbxp5L0rGdC0ki2M18YjNnylr0aAOXDLCzW5k84fJhT7aCkdlFrPeOY2tH0b75MMjDJh/exec';
+var TF_LIST=['TF5','TF6','TF7','TF8','TF9','TF10','TF12','TF13','TF14','TF15','TF16'];
+var FG_KEY='fgSaved';
+var fgState=null;      // { data, sid } setelah simpan sukses
+var fgDraft=null;      // { sid, json } untuk retry, supaya tidak ganda
+var fgCache=[];        // hasil cari palet
 
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
-function fmtN(n){ return Number(n||0).toLocaleString('id-ID',{maximumFractionDigits:2}); }
-function tglIndo(iso){ var p=String(iso||'').split('-'); return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:(iso||''); }
-function hariIni(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function setMsg(t,c){ var m=document.getElementById('msg'); m.textContent=t; m.className=c||''; }
+function esc(s){ return String(s===null||s===undefined?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function tanggalHariIni(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function jamSekarang(){ var n=new Date(); return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'); }
+function fmtTglIndo(iso){ var p=String(iso||'').split('-'); return p.length===3 ? p[2]+'-'+p[1]+'-'+p[0] : (iso||''); }
+function fgNewSid(){ return 'F'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
-function sInit(){
-  document.getElementById('sTgl').value=hariIni();
-  document.getElementById('sJam').value=jamSekarang();
+function fgIsiTf(){
+  var sel=document.getElementById('fTf');
+  sel.innerHTML='<option value="">- pilih -</option>';
+  TF_LIST.forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
 }
 
-function sBuatTeks(res, tgl, jam, shift){
-  var t='📊 STOK PER WAKTU\nPosisi: '+tglIndo(tgl)+' '+jam+' | Shift: '+(shift||'Semua')+'\n';
-  res.groups.forEach(function(g){
-    t+='\n'+g.ukuran+'   '+fmtN(g.total)+' kg\n';
-    g.rows.forEach(function(it){
-      t+=it.carsheet+' | '+fmtN(it.berat)+' kg | TF '+it.untukTf+'\n'+
-        it.tanggalTxt+' '+it.jam+' | Shift '+it.shift+' | KR '+it.nama+'\n';
-    });
+function fgMuatProduk(){
+  fetch(WEBAPP_URL+'?action=ukuranList').then(function(r){return r.json();}).then(function(res){
+    var sel=document.getElementById('fProduk');
+    sel.innerHTML='<option value="">- pilih -</option>';
+    if(res&&res.ok){
+      res.items.forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+    } else { setMsg('Gagal memuat produk: '+((res&&res.error)||''),'bad'); }
+  }).catch(function(){ setMsg('Gagal memuat daftar produk','bad'); });
+}
+
+function fgKunci(on){
+  ['fTanggal','fShift','fTf','fJam','fProduk','fQty','fGram','fNama','fBsSheet','fWaste'].forEach(function(id){
+    document.getElementById(id).disabled=on;
   });
-  t+='\nTOTAL  '+fmtN(res.grand)+' kg ('+res.jumlah+' carsheet)';
-  return t;
+  document.getElementById('btnSave').disabled=on;
 }
 
-function sCari(){
-  var tgl=document.getElementById('sTgl').value, jam=document.getElementById('sJam').value;
-  var shift=document.getElementById('sShift').value;
-  var box=document.getElementById('sBox');
-  if(!tgl){ box.innerHTML='<div class="bad">Tanggal belum dipilih</div>'; return; }
-  if(!jam){ box.innerHTML='<div class="bad">Jam belum dipilih</div>'; return; }
-  box.innerHTML='Memuat...';
-  fetch(URL_EXEC+'?action=stokAsOf&tgl='+encodeURIComponent(tgl)+'&jam='+encodeURIComponent(jam)+'&shift='+encodeURIComponent(shift))
+function fgTampilSudahSimpan(){
+  fgKunci(true);
+  document.getElementById('btnSave').disabled=true;
+  document.getElementById('btnPrint').disabled=false;
+  document.getElementById('btnShareWA').disabled=false;
+}
+
+function fgAmbilForm(){
+  return {
+    tanggal:document.getElementById('fTanggal').value,
+    shift:document.getElementById('fShift').value,
+    tf:document.getElementById('fTf').value,
+    namaProduk:document.getElementById('fProduk').value,
+    qty:document.getElementById('fQty').value.trim(),
+    gram:document.getElementById('fGram').value.trim(),
+    nama:document.getElementById('fNama').value.trim(),
+    jam:document.getElementById('fJam').value || jamSekarang(),
+    bsSheet:document.getElementById('fBsSheet').value.trim(),
+    waste:document.getElementById('fWaste').value.trim()
+  };
+}
+
+function fgValidasi(d){
+  if(!d.tanggal) return 'Tanggal belum diisi';
+  if(!d.shift) return 'Shift belum dipilih';
+  if(!d.tf) return 'TF belum dipilih';
+  if(!d.namaProduk) return 'Nama produk belum dipilih';
+  if(!d.qty||isNaN(parseFloat(d.qty))||parseFloat(d.qty)<=0) return 'Qty belum valid';
+  if(!d.nama) return 'Nama belum diisi';
+  return null;
+}
+
+// 1. Simpan ke sheet FG. Cetak dilakukan dengan tombol Cetak.
+function fgSimpan(){
+  var msgEl=document.getElementById('msg');
+  if(fgState){ setMsg('Data sudah tersimpan. Pakai Cetak, atau Kosongkan Form untuk input baru.','bad'); return; }
+  var d=fgAmbilForm();
+  var err=fgValidasi(d);
+  if(err){ setMsg(err,'bad'); return; }
+
+  // Retry dengan data yang sama memakai sid yang sama, supaya backend tidak menulis dua kali
+  var json=JSON.stringify(d);
+  if(!fgDraft||fgDraft.json!==json){ fgDraft={sid:fgNewSid(), json:json}; }
+  var sid=fgDraft.sid;
+
+  var payload={_app:'fg',sid:sid,tanggal:d.tanggal,shift:d.shift,tf:d.tf,namaProduk:d.namaProduk,
+               qty:d.qty,gram:d.gram,nama:d.nama,jam:d.jam,bsSheet:d.bsSheet,waste:d.waste};
+
+  var btn=document.getElementById('btnSave');
+  btn.disabled=true; setMsg('Menyimpan...','');
+
+  fetch(WEBAPP_URL+'?action=save&payload='+encodeURIComponent(JSON.stringify(payload)))
+    .then(function(r){ return r.text(); })
+    .then(function(t){
+      var res;
+      try{ res=JSON.parse(t); }catch(e){ res={ok:false,error:'Respon server: '+t.slice(0,200)}; }
+      if(res&&res.ok&&res.palet){
+        payload.palet=res.palet;
+        fgState={data:payload, sid:sid};
+        fgDraft=null;
+        try{ localStorage.setItem(FG_KEY, JSON.stringify(fgState)); }catch(e){}
+        fgIsiPreview(payload,false);
+        fgTampilSudahSimpan();
+        setMsg((res.duplicate?'Data sudah tersimpan sebelumnya. ':'✅ Tersimpan. ')+'No. Palet '+res.palet+'. Tekan Cetak jika struk belum keluar.', 'ok');
+      } else {
+        btn.disabled=false;
+        setMsg('❌ Gagal: '+((res&&res.error)||'Server tidak mengembalikan No. Palet')+'. Tekan Simpan lagi, data tidak akan ganda.','bad');
+      }
+    })
+    .catch(function(e){
+      btn.disabled=false;
+      setMsg('❌ Gagal: '+e.message+'. Tekan Simpan lagi, data tidak akan ganda.','bad');
+    });
+}
+
+// 2. Cetak data yang sudah tersimpan (bisa diulang)
+function fgCetak(){
+  if(!fgState){ setMsg('Belum ada data tersimpan.','bad'); return; }
+  fgIsiPreview(fgState.data,false);
+  setTimeout(function(){ window.print(); }, 300);
+}
+
+function fgIsiPreview(d, ulang){
+  document.getElementById('pTag').textContent = ulang ? '** CETAK ULANG **' : '';
+  document.getElementById('pPalet').textContent='No. Palet: '+d.palet;
+  document.getElementById('pProduk').textContent=d.namaProduk;
+  document.getElementById('pQty').textContent=Number(d.qty).toLocaleString('id-ID')+' Box';
+  document.getElementById('pGram').textContent=d.gram ? 'Gram: '+Number(d.gram).toLocaleString('id-ID') : '';
+  document.getElementById('pTf').textContent=d.tf;
+  document.getElementById('pTanggal').textContent=fmtTglIndo(d.tanggal)+' '+d.jam;
+  document.getElementById('pShift').textContent='SHIFT '+d.shift;
+  document.getElementById('pNama').textContent=d.nama;
+  try{
+    JsBarcode("#pBarcode", String(d.palet), {format:"CODE128", width:1.3, height:55, displayValue:true, fontSize:11, margin:2});
+  }catch(e){
+    document.getElementById('pBarcode').innerHTML='';
+  }
+}
+
+// 3. Share WA memakai data yang sudah tersimpan
+function fgPesan(d){
+  return "📦 HASIL PRODUKSI FG\n"+
+    "Tanggal: "+fmtTglIndo(d.tanggal)+" | Jam: "+d.jam+"\n"+
+    "Shift: "+d.shift+" | TF: "+d.tf+"\n"+
+    "No. Palet: "+d.palet+"\n"+
+    "Nama Produk: "+d.namaProduk+"\n"+
+    "Qty: "+d.qty+"\n"+
+    "Gram: "+(d.gram||'-')+"\n"+
+    "Nama: "+d.nama;
+}
+
+function fgShareWa(){
+  if(!fgState){ setMsg('Simpan dulu','bad'); return; }
+  window.open("https://wa.me/?text="+encodeURIComponent(fgPesan(fgState.data)),"_blank");
+  setMsg('WhatsApp dibuka. Data masih ada di form.','ok');
+}
+
+// 4. Cari cetak ulang: ketik no. palet, hasil hanya dibaca
+function fgBukaCari(){
+  var p=document.getElementById('ulangPanel');
+  p.style.display='block';
+  document.getElementById('ulCari').focus();
+  p.scrollIntoView({behavior:'smooth'});
+}
+
+function fgTutupCari(){ document.getElementById('ulangPanel').style.display='none'; }
+
+function fgCariPalet(){
+  var kode=document.getElementById('ulCari').value.trim();
+  var list=document.getElementById('ulangList');
+  if(!kode){ list.innerHTML='<div class="bad">Ketik no. palet dulu.</div>'; return; }
+  list.innerHTML='<div style="color:var(--mute);font-size:12.5px">Mencari...</div>';
+  fetch(WEBAPP_URL+'?action=fgcari&palet='+encodeURIComponent(kode))
     .then(function(r){ return r.json(); })
     .then(function(res){
-      if(!res.ok){ box.innerHTML='<div class="bad">'+esc(res.error)+'</div>'; return; }
-      if(!res.groups.length){ box.innerHTML='Tidak ada stok pada waktu tersebut.'; return; }
-      sRekap=sBuatTeks(res, tgl, jam, shift);
-      var html=res.groups.map(function(g){
-        return '<div class="card mono">'+
-          '<div style="font-size:15px;font-weight:bold">'+esc(g.ukuran)+'&nbsp;&nbsp;&nbsp;'+fmtN(g.total)+' kg</div>'+
-          g.rows.map(function(it){
-            return '<div style="margin-top:6px">'+esc(it.carsheet)+' | '+fmtN(it.berat)+' kg | TF '+esc(it.untukTf)+
-              '<br><small>'+esc(it.tanggalTxt)+' '+esc(it.jam)+' | Shift '+esc(it.shift)+' | KR '+esc(it.nama)+'</small></div>';
-          }).join('')+'</div>';
-      }).join('');
-      html+='<div class="card mono" style="font-size:15px;font-weight:bold">TOTAL&nbsp;&nbsp;&nbsp;'+fmtN(res.grand)+' kg<br>'+
-        '<small style="font-weight:normal">'+res.jumlah+' carsheet</small></div>';
-      html+='<button class="btn wa" onclick="sShare()">Share WA</button>';
-      box.innerHTML=html;
+      if(!res||!res.ok){ list.innerHTML='<div class="bad">'+esc(res&&res.error?res.error:'Tidak ditemukan')+'</div>'; return; }
+      fgCache=res.items||[];
+      if(!fgCache.length){ list.innerHTML='<div style="color:var(--mute);font-size:12.5px">No. palet tidak ditemukan.</div>'; return; }
+      var html='';
+      fgCache.forEach(function(it,idx){
+        html+='<div class="ul-item">'+
+          '<div class="t">'+esc(it.palet)+'</div>'+
+          '<div class="s">'+esc(it.namaProduk)+' | Qty '+esc(it.qty)+(it.gram!==''?' | Gram '+esc(it.gram):'')+'</div>'+
+          '<div class="s">TF '+esc(it.tf)+' | '+esc(it.tanggalTxt)+' '+esc(it.jam)+' | Shift '+esc(it.shift)+'</div>'+
+          '<div class="s">Operator: '+esc(it.nama)+'</div>'+
+          '<button type="button" onclick="fgCetakUlang('+idx+')">🖨 Cetak Ulang</button>'+
+        '</div>';
+      });
+      list.innerHTML=html;
     })
-    .catch(function(e){ box.innerHTML='<div class="bad">Gagal: '+esc(e.message)+'</div>'; });
+    .catch(function(e){ list.innerHTML='<div class="bad">Gagal mencari: '+esc(e.message)+'</div>'; });
 }
 
-function sShare(){
-  if(!sRekap){ alert('Tampilkan data dulu'); return; }
-  window.open('https://wa.me/?text='+encodeURIComponent(sRekap),'_blank');
+// Cetak ulang: hanya membaca data hasil cari, tidak menulis ke sheet dan tidak mengubah form
+function fgCetakUlang(idx){
+  var it=fgCache[idx];
+  if(!it) return;
+  var d={
+    palet: it.palet,
+    namaProduk: it.namaProduk,
+    qty: it.qty,
+    gram: it.gram,
+    tf: it.tf,
+    tanggal: it.tanggal || tanggalHariIni(),
+    jam: it.jam,
+    shift: it.shift,
+    nama: it.nama
+  };
+  fgIsiPreview(d,true);
+  setTimeout(function(){ window.print(); }, 300);
 }
 
-sInit();
+// 5. Kosongkan form, satu-satunya cara untuk input baru
+function fgKosongkan(){
+  fgState=null;
+  fgDraft=null;
+  try{ localStorage.removeItem(FG_KEY); }catch(e){}
+  ['fShift','fTf','fProduk','fQty','fGram','fNama','fBsSheet','fWaste'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('fTanggal').value=tanggalHariIni();
+  document.getElementById('fJam').value=jamSekarang();
+  fgKunci(false);
+  document.getElementById('btnSave').disabled=false;
+  document.getElementById('btnPrint').disabled=true;
+  document.getElementById('btnShareWA').disabled=true;
+  setMsg('Form dikosongkan. Siap untuk input berikutnya.','ok');
+}
+
+// Saat halaman dibuka ulang, pulihkan status tersimpan dari browser
+function fgPulihkan(){
+  var raw=null;
+  try{ raw=localStorage.getItem(FG_KEY); }catch(e){}
+  if(!raw) return;
+  try{
+    fgState=JSON.parse(raw);
+    fgIsiPreview(fgState.data,false);
+    fgTampilSudahSimpan();
+    setMsg('Ada data tersimpan. Tekan Cetak jika struk belum keluar, atau Kosongkan Form untuk input baru.','ok');
+  }catch(e){ fgState=null; try{ localStorage.removeItem(FG_KEY); }catch(_){} }
+}
+
+document.getElementById('fTanggal').value=tanggalHariIni();
+document.getElementById('fJam').value=jamSekarang();
+fgIsiTf();
+fgMuatProduk();
+fgPulihkan();
 </script>
 </body>
 </html>
