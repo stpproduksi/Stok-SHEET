@@ -1,8 +1,3 @@
-// Service worker minimal - fungsinya cuma supaya Chrome menganggap halaman
-// ini "installable" sebagai app (bukan cuma pintasan/bookmark). Tidak ada
-// caching khusus karena app ini memang butuh koneksi internet tiap kali
-// dipakai (simpan data & ambil daftar Ukuran dari spreadsheet).
-
 self.addEventListener('install', function (e) {
   self.skipWaiting();
 });
@@ -12,5 +7,12 @@ self.addEventListener('activate', function (e) {
 });
 
 self.addEventListener('fetch', function (e) {
-  e.respondWith(fetch(e.request));
+  e.respondWith(
+    fetch(e.request).catch(function () {
+      return new Response('Tidak ada koneksi internet', {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
+    })
+  );
 });
