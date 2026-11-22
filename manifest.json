@@ -1,6 +1,6 @@
 {
-  "name": "Stok sheet STP",
-  "short_name": "Stok-Sheet",
+  "name": "Update Stok SHEET",
+  "short_name": "Stok SHEET",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
